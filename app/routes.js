@@ -1,16 +1,10 @@
 // app/routes.js
 module.exports = function(app, passport) {
 
-    // =====================================
-    // HOME PAGE (with login links) ========
-    // =====================================
     app.get('/', function(req, res) {
-        res.render('index.ejs'); // load the index.ejs file
+        res.render('index.ejs');
     });
 
-    // =====================================
-    // LOGIN ===============================
-    // =====================================
     // show the login form
     app.get('/login', function(req, res) {
 
@@ -18,12 +12,6 @@ module.exports = function(app, passport) {
         res.render('login.ejs', { message: req.flash('loginMessage') }); 
     });
 
-    // process the login form
-    // app.post('/login', do all our passport stuff here);
-
-    // =====================================
-    // SIGNUP ==============================
-    // =====================================
     // show the signup form
     app.get('/signup', function(req, res) {
 
@@ -31,34 +19,20 @@ module.exports = function(app, passport) {
         res.render('signup.ejs', { message: req.flash('signupMessage') });
     });
 
-    // process the signup form
-    // app.post('/signup', do all our passport stuff here);
-
-    // =====================================
-    // PROFILE SECTION =====================
-    // =====================================
-    // we will want this protected so you have to be logged in to visit
-    // we will use route middleware to verify this (the isLoggedIn function)
+    //on successful signup, show profile
     app.get('/profile', isLoggedIn, function(req, res) {
         res.render('profile.ejs', {
             user : req.user // get the user out of session and pass to template
         });
     });
 
-    // =====================================
-    // LOGOUT ==============================
-    // =====================================
     app.get('/logout', function(req, res) {
         req.logout();
         res.redirect('/');
     });
 
-    // =====================================
-    // GOOGLE ROUTES =======================
-    // =====================================
     // send to google to do the authentication
     // profile gets us their basic information including their name
-    // email gets their emails
     app.get('/auth/google', passport.authenticate('google', { scope : ['profile', 'email'] }));
 
     // the callback after google has authenticated the user
@@ -71,16 +45,19 @@ module.exports = function(app, passport) {
 
 // route middleware to make sure a user is logged in
 function isLoggedIn(req, res, next) {
-
-    // if user is authenticated in the session, carry on 
-    if (req.isAuthenticated() & validateEmail(res.email))
-        return next();
-
+    
+    // if user is authenticated and has a workiva address
+    if (req.isAuthenticated() & validateEmail(req.user.google.email)){
+        return next();   
+    };
+    
     // if they aren't redirect them to the home page
     res.redirect('/');
-}
+};
 
+// validate that user has a workiva address
 function validateEmail(email){
+    
     var re = /^\"?[\w-_\.]*\"?@workiva\.com$/;
     return re.test(email);
-}
+};
